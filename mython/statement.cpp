@@ -7,6 +7,9 @@ using namespace std;
 
 namespace ast {
 
+    const string ADD_METHOD = "__add__"s;
+    const string INIT_METHOD = "__init__"s;
+
     using runtime::Closure;
     using runtime::Context;
     using runtime::ObjectHolder;
@@ -40,22 +43,19 @@ namespace ast {
             {
                 return holder;
             }
-            else 
+            for (size_t i = 1; i < var_names_.size(); ++i) 
             {
-                for (size_t i = 1; i < var_names_.size(); ++i) 
+                runtime::ClassInstance* obj_ptr = holder.TryAs<runtime::ClassInstance>();
+                if (obj_ptr) 
                 {
-                    runtime::ClassInstance* obj_ptr = holder.TryAs<runtime::ClassInstance>();
-                    if (obj_ptr) 
-                    {
-                        holder = obj_ptr->Fields()[var_names_[i]];
-                    }
-                    else 
-                    {
-                        throw std::runtime_error("there's no such field for object"s);
-                    }
+                    holder = obj_ptr->Fields()[var_names_[i]];
                 }
-                return holder;
+                else 
+                {
+                    throw std::runtime_error("there's no such field for object"s);
+                }
             }
+            return holder;
         }
         else 
         {
@@ -152,9 +152,9 @@ namespace ast {
             return ObjectHolder::Own(runtime::String(str_res.value()));
         }
         runtime::ClassInstance* class_instance_ptr = lhs_holder.TryAs<runtime::ClassInstance>();
-        if (class_instance_ptr && class_instance_ptr->HasMethod("__add__"s, 1))
+        if (class_instance_ptr && class_instance_ptr->HasMethod(ADD_METHOD, 1))
         {
-            return class_instance_ptr->Call("__add__"s, { rhs_holder }, context);
+            return class_instance_ptr->Call(ADD_METHOD, { rhs_holder }, context);
         }
         throw runtime_error("No operation for this args"s);
     }
@@ -323,14 +323,14 @@ namespace ast {
     {
         ObjectHolder obj = runtime::ObjectHolder::Own(runtime::ClassInstance{ class_ref_ });
         runtime::ClassInstance* instance_ptr = obj.TryAs<runtime::ClassInstance>();
-        if (instance_ptr->HasMethod("__init__"s, args_.size()))
+        if (instance_ptr->HasMethod(INIT_METHOD, args_.size()))
         {
             vector<ObjectHolder> local_args;
             for (size_t i = 0; i < args_.size(); ++i)
             {
                 local_args.push_back(args_[i].get()->Execute(closure, context));
             }
-            instance_ptr->Call("__init__"s, local_args, context);
+            instance_ptr->Call(INIT_METHOD, local_args, context);
         }
         return obj;
     }

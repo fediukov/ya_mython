@@ -9,6 +9,11 @@ using namespace std;
 
 namespace runtime {
 
+    const std::string STR_METHOD = "__str__"s;
+    const std::string EQ_METHOD = "__eq__"s;
+    const std::string LT_METHOD = "__lt__"s;
+
+
     // ------------------------------------------------------------------------ //
     // ObjectHolder ----------------------------------------------------------- //
     ObjectHolder::ObjectHolder(std::shared_ptr<Object> data)
@@ -66,9 +71,9 @@ namespace runtime {
 
     void ClassInstance::Print(std::ostream& os, [[maybe_unused]] Context& context)
     {
-        if (HasMethod("__str__", 0))
+        if (HasMethod(STR_METHOD, 0))
         {
-            Call("__str__", {}, context).TryAs<Object>()->Print(os, context);
+            Call(STR_METHOD, {}, context).TryAs<Object>()->Print(os, context);
         }
         else
         {
@@ -88,15 +93,11 @@ namespace runtime {
     Closure& ClassInstance::Fields()
     {
         return symbol_table_;
-        // Заглушка. Реализуйте метод самостоятельно
-        throw std::logic_error("Not implemented"s);
     }
 
     const Closure& ClassInstance::Fields() const
     {
         return symbol_table_;
-        // Заглушка. Реализуйте метод самостоятельно
-        throw std::logic_error("Not implemented"s);
     }
 
 
@@ -115,10 +116,7 @@ namespace runtime {
             }
             return cls_.GetMethod(method)->body->Execute(args, context);
         }
-        else
-        {
-            throw std::runtime_error("Not implemented"s);
-        }
+        throw std::runtime_error("Not implemented"s);
     }
 
     // ------------------------------------------------------------------------ //
@@ -130,7 +128,7 @@ namespace runtime {
         {
             Method* method = new Method(std::move(m));
             methods_.push_back(method);
-        }
+        }//*/
     }
 
     const Method* Class::GetMethod(const std::string& name) const
@@ -183,7 +181,7 @@ namespace runtime {
         }
         else if (lhs.TryAs<ClassInstance>() != nullptr && rhs.TryAs<ClassInstance>() != nullptr)
         {
-            return lhs.TryAs<ClassInstance>()->Call("__eq__", {rhs}, context).TryAs<Bool>()->GetValue();
+            return lhs.TryAs<ClassInstance>()->Call(EQ_METHOD, {rhs}, context).TryAs<Bool>()->GetValue();
         }
         else if ((lhs.TryAs<String>() == nullptr && rhs.TryAs<String>() == nullptr)
             && (lhs.TryAs<Number>() == nullptr && rhs.TryAs<Number>() == nullptr)
@@ -204,22 +202,19 @@ namespace runtime {
         {
             return lhs.TryAs<String>()->GetValue() < rhs.TryAs<String>()->GetValue();
         }
-        else if (lhs.TryAs<Number>() != nullptr && rhs.TryAs<Number>() != nullptr)
+        if (lhs.TryAs<Number>() != nullptr && rhs.TryAs<Number>() != nullptr)
         {
             return lhs.TryAs<Number>()->GetValue() < rhs.TryAs<Number>()->GetValue();
         }
-        else if (lhs.TryAs<Bool>() != nullptr && rhs.TryAs<Bool>() != nullptr)
+        if (lhs.TryAs<Bool>() != nullptr && rhs.TryAs<Bool>() != nullptr)
         {
             return lhs.TryAs<Bool>()->GetValue() < rhs.TryAs<Bool>()->GetValue();
         }
-        else if (lhs.TryAs<ClassInstance>() != nullptr && rhs.TryAs<ClassInstance>() != nullptr)
+        if (lhs.TryAs<ClassInstance>() != nullptr && rhs.TryAs<ClassInstance>() != nullptr)
         {
-            return lhs.TryAs<ClassInstance>()->Call("__lt__", { rhs }, context).TryAs<Bool>()->GetValue();
+            return lhs.TryAs<ClassInstance>()->Call(LT_METHOD, { rhs }, context).TryAs<Bool>()->GetValue();
         }
-        else
-        {
-           throw std::runtime_error("Cannot compare objects for equality"s);
-        }
+        throw std::runtime_error("Cannot compare objects for equality"s);
     }
 
     bool NotEqual(const ObjectHolder& lhs, const ObjectHolder& rhs, [[maybe_unused]] Context& context)

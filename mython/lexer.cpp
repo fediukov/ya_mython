@@ -8,6 +8,8 @@ using namespace std;
 
 namespace parse {
 
+    const int INDENT_SIZE = 2;
+
     bool operator==(const Token& lhs, const Token& rhs) {
         using namespace token_type;
 
@@ -81,16 +83,6 @@ namespace parse {
         ParseLexeme();
     }
 
-    /*const Token& Lexer::CurrentToken() const {
-        // Çàãëóøêà. Ğåàëèçóéòå ìåòîä ñàìîñòîÿòåëüíî
-        throw std::logic_error("Not implemented"s);
-    }//*/
-
-    /*Token Lexer::NextToken() {
-        // Çàãëóøêà. Ğåàëèçóéòå ìåòîä ñàìîñòîÿòåëüíî
-        throw std::logic_error("Not implemented"s);
-    }//*/
-
     void Lexer::ParseLexeme()
     {
         auto it = it_;
@@ -101,25 +93,19 @@ namespace parse {
             if (it == end)
             {
                 AddEofLexemå();
-
                 it_ = it;
                 break;
             }
         
-            std::string s = "";
             // parse indents/dedents
             if (tokens_.empty() || tokens_.back().Is<token_type::Newline>())
             {
-                while ((*it) == ' ')
-                {
-                    s.push_back(*it);
-                    ++it;
-                }
-                // checking is not ignored line except before eof
+ 
+                std::string s = ParseIndentLexeme(it);
                 if (((*it) != '\n' && (*it) != '#') || it == end)
                 {
                     // checkig and add indent/dedent
-                    if (s.size() % 2)
+                    if (s.size() % INDENT_SIZE)
                     {
                         throw;
                     }
@@ -129,41 +115,24 @@ namespace parse {
                         break;
                     }
                 }
-                s = "";
             }
 
             // ignoring spaces in the middle of the line
             if ((*it) == ' ')
             {
-                ++it;
+                IgnoreSpaces(it);
             }
             // parse word lexeme
-            else if ((*it) == '_' || ((*it) >= 65 && (*it) <= 90) || ((*it) >= 97 && (*it) <= 122))
+            else if ((*it) == '_' || ((*it) >= 'a' && (*it) <= 'z') || ((*it) >= 'A' && (*it) <= 'Z'))
             {
-                while ((*it) == '_' || ((*it) >= 65 && (*it) <= 90) || ((*it) >= 97 && (*it) <= 122) || ((*it) >= 48 && (*it) <= 57))
-                {
-                    s.push_back(*it);
-                    ++it;
-                    if (it == end) { break; }
-                }
-
-                AddWordLexemå(s);
-
+                AddWordLexemå(ParseWordLexeme(it));
                 it_ = it;
                 break;
             }
             // parse number lexeme
-            else if ((*it) >= 48 && (*it) <= 57)
+            else if ((*it) >= '0' && (*it) <= '9')
             {
-                while ((*it) >= 48 && (*it) <= 57)
-                {
-                    s += (*it);
-                    ++it;
-                    if (it == end) { break; }
-                }
-
-                AddNumberLexemå(s);
-
+                AddNumberLexemå(ParseNumberLexeme(it));
                 it_ = it;
                 break;
             }
@@ -172,9 +141,7 @@ namespace parse {
                 || (*it) == ':' || (*it) == '(' || (*it) == ')' || (*it) == ',' || (*it) == '.')
             {
                 AddCharLexemå(*it);
-                ++it;
-
-                it_ = it;
+                it_ = ++it;
                 break;
             }
             // parse other operator lexeme
@@ -197,52 +164,14 @@ namespace parse {
                 char c = (*it);
                 ++it;
                 if (it == end) { AddEofLexemå(); break; }
-                while ((*it) != c)
-                {
-                    if ((*it) == '\\')
-                    {
-                        ++it;
-                        if (it == end) { AddEofLexemå(); break; }
-                        if ((*it) == '\"')
-                        {
-                            s += '\"';
-                        }
-                        else if ((*it) == '\'')
-                        {
-                            s += '\'';
-                        }
-                        else if ((*it) == 't')
-                        {
-                            s += '\t';
-                        }
-                        else if ((*it) == 'n')
-                        {
-                            s += '\n';
-                        }//*/
-                        ++it;
-                    }
-                    else
-                    {
-                        s += (*it);
-                        ++it;
-                        if (it == end) { break; }
-                    }
-                }
-                ++it;
-
-                AddStringLexemå(s);
-
-                it_ = it;
+                AddStringLexemå(ParseStringLexeme(it, c));
+                it_ = ++it;
                 break;
             }
             // parse comment lexeme
             else if ((*it) == '#')
             {
-                while (true)
-                {
-                    ++it;
-                    if (it == end || *it == '\n') { break; }
-                }
+                IgnoreComment(it);
             }
             // parse end of line
             else if ((*it) == '\n')
@@ -250,7 +179,6 @@ namespace parse {
                 if (!tokens_.empty() && !tokens_.back().Is<token_type::Indent>() && !tokens_.back().Is<token_type::Newline>())
                 {
                     AddNewLineLexemå();
-
                     it_ = it;
                     break;
                 }
@@ -402,7 +330,7 @@ namespace parse {
 
     bool Lexer::AddIndentLexeme(size_t indent)
     {
-        indent /= 2;
+        indent /= INDENT_SIZE;
         token_type::Indent indent_token;
         token_type::Dedent dedent_token;
         if (indent == indent_)
@@ -449,6 +377,97 @@ namespace parse {
 
         token_type::Eof token;
         tokens_.emplace_back(token);
+    }
+
+    void Lexer::IgnoreSpaces(std::istreambuf_iterator<char>& it)
+    {
+        while (*it == ' ')
+        {
+            ++it;
+        }
+    }
+
+    std::string Lexer::ParseIndentLexeme(std::istreambuf_iterator<char>& it)
+    {
+        std::string s;
+        while ((*it) == ' ')
+        {
+            s.push_back(*it);
+            ++it;
+        }
+        return s;
+    }
+
+    std::string Lexer::ParseWordLexeme(std::istreambuf_iterator<char>& it)
+    {
+        std::string s;
+        while ((*it) == '_' || ((*it) >= 'a' && (*it) <= 'z') || ((*it) >= 'A' && (*it) <= 'Z') || ((*it) >= '0' && (*it) <= '9'))
+        {
+            s.push_back(*it);
+            ++it;
+            if (it == end_) { break; }
+        }
+        return s;
+    }
+
+    std::string Lexer::ParseNumberLexeme(std::istreambuf_iterator<char>& it)
+    {
+        std::string s;
+        while ((*it) >= '0' && (*it) <= '9')
+        {
+            s.push_back(*it);
+            ++it;
+            if (it == end_) { break; }
+        }
+        return s;
+    }
+
+    std::string Lexer::ParseStringLexeme(std::istreambuf_iterator<char>& it, const char c)
+    {
+        std::string s;
+
+        while ((*it) != c)
+        {
+            if ((*it) == '\\')
+            {
+                ++it;
+                if (it == end_) { AddEofLexemå(); break; }
+                if ((*it) == '\"')
+                {
+                    s += '\"';
+                }
+                else if ((*it) == '\'')
+                {
+                    s += '\'';
+                }
+                else if ((*it) == 't')
+                {
+                    s += '\t';
+                }
+                else if ((*it) == 'n')
+                {
+                    s += '\n';
+                }//*/
+                ++it;
+            }
+            else
+            {
+                s += (*it);
+                ++it;
+                if (it == end_) { break; }
+            }
+        }
+
+        return s;
+    }
+
+    void Lexer::IgnoreComment(std::istreambuf_iterator<char>& it)
+    {
+        while (true)
+        {
+            ++it;
+            if (it == end_ || *it == '\n') { break; }
+        }
     }
 
 }  // namespace parse

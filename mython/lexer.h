@@ -191,6 +191,13 @@ namespace parse {
         void AddNewLineLexemå();
         void AddEofLexemå();
 
+        void IgnoreSpaces(std::istreambuf_iterator<char>& it);
+        std::string ParseIndentLexeme(std::istreambuf_iterator<char>& it);
+        std::string ParseWordLexeme(std::istreambuf_iterator<char>& it);
+        std::string ParseNumberLexeme(std::istreambuf_iterator<char>& it);
+        std::string ParseStringLexeme(std::istreambuf_iterator<char>& it, const char c);
+        void IgnoreComment(std::istreambuf_iterator<char>& it);
+
     private:
         std::vector<Token> tokens_;
         std::istreambuf_iterator<char> it_;
