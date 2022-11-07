@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include <iostream>
 #include <map>
 #include <set>
@@ -15,6 +13,7 @@ namespace TestRunnerPrivate {
     template <class Map>
     std::ostream& PrintMap(std::ostream& os, const Map& m) {
         os << "{";
+
         bool first = true;
         for (const auto& kv : m) {
             if (!first) {
@@ -23,13 +22,15 @@ namespace TestRunnerPrivate {
             first = false;
             os << kv.first << ": " << kv.second;
         }
+
         return os << "}";
     }
-}  // namespace TestRunnerPrivate
+} // namespace TestRunnerPrivate
 
 template <class T>
 std::ostream& operator<<(std::ostream& os, const std::vector<T>& s) {
     os << "{";
+
     bool first = true;
     for (const auto& x : s) {
         if (!first) {
@@ -38,12 +39,14 @@ std::ostream& operator<<(std::ostream& os, const std::vector<T>& s) {
         first = false;
         os << x;
     }
+
     return os << "}";
 }
 
 template <class T>
 std::ostream& operator<<(std::ostream& os, const std::set<T>& s) {
     os << "{";
+
     bool first = true;
     for (const auto& x : s) {
         if (!first) {
@@ -51,7 +54,8 @@ std::ostream& operator<<(std::ostream& os, const std::set<T>& s) {
         }
         first = false;
         os << x;
-    } 
+    }
+    
     return os << "}";
 }
 
@@ -88,12 +92,10 @@ public:
         try {
             func();
             std::cerr << test_name << " OK" << std::endl;
-        }
-        catch (std::exception& e) {
+        } catch (std::exception& e) {
             ++fail_count;
             std::cerr << test_name << " fail: " << e.what() << std::endl;
-        }
-        catch (...) {
+        } catch (...) {
             ++fail_count;
             std::cerr << "Unknown exception caught" << std::endl;
         }
