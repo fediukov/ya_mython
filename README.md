@@ -24,7 +24,6 @@
   + [Парсер](https://github.com/fediukov/ya_mython#%D0%BF%D0%B0%D1%80%D1%81%D0%B5%D1%80)
   + [Семантический анализатор](https://github.com/fediukov/ya_mython#%D1%81%D0%B5%D0%BC%D0%B0%D0%BD%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9-%D0%B0%D0%BD%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%82%D0%BE%D1%80)
   + [Таблица символов](https://github.com/fediukov/ya_mython#%D1%82%D0%B0%D0%B1%D0%BB%D0%B8%D1%86%D0%B0-%D1%81%D0%B8%D0%BC%D0%B2%D0%BE%D0%BB%D0%BE%D0%B2)
-  + [runtime-модуль](https://github.com/fediukov/ya_mython#runtime-%D0%BC%D0%BE%D0%B4%D1%83%D0%BB%D1%8C)
 + [Применяемые навыки](https://github.com/fediukov/ya_mython#%D0%BF%D1%80%D0%B8%D0%BC%D0%B5%D0%BD%D1%8F%D0%B5%D0%BC%D1%8B%D0%B5-%D0%BD%D0%B0%D0%B2%D1%8B%D0%BA%D0%B8)
 
 ## Описание языка
@@ -213,10 +212,6 @@
 #### Таблица символов
 
 В таблице символов хранятся наименование переменных и их значения.
-
-#### runtime-модуль
-
-Runtime-модуль интерпретатора отвечает за управление состоянием программы во время её работы. Этот модуль реализует встроенные типы данных языка Mython и таблицу символов.
 
 ## Применяемые навыки
 
